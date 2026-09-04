@@ -64,9 +64,14 @@ Rules for picking the next one:
   prerelease strings (`0.2.0-1`) for this, but they sort *before* their release
   version, so they only work if you publish the prereleases first and the plain
   version last.
-- The currently published version is **`0.1.0`**, serving
-  `https://drive.mcp.tokencanopy.com/mcp`. Version `0.0.1` is `deprecated`: it
-  pointed at `api.agentdrive.run/mcp`, which no longer resolves.
+- The published entry is **`com.tokencanopy/agentdrive` `0.1.0`**, serving
+  `https://drive.mcp.tokencanopy.com/mcp`. Publishing requires a DNS-verified
+  key on `tokencanopy.com`.
+- The former `run.agentdrive/agentdrive` entry is **deleted**. Note why it had
+  to be deleted rather than left in place: the registry allows a remote URL to
+  be claimed by exactly **one** server name, and neither deprecating nor
+  leaving the old entry releases that claim. A namespace migration is therefore
+  delete-then-publish, not publish-then-deprecate.
 
 Note that `0.1.0` was a minor bump for what was really a patch-level URL
 correction. That was a mistake, kept because it cannot be edited and republishing
