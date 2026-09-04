@@ -43,6 +43,35 @@ It **must stay identical in all of them**. Never update one without updating the
 ### 2. MCP Registry Submission (`connector/server.json`)
 `connector/server.json` is the MCP Registry submission metadata. Publishing or updating an entry on the MCP Registry is a manual, human action requiring DNS-verified domain ownership. Modifying `connector/server.json` in git does **not** update the live registry listing. Do not change the `name` field in `connector/server.json`.
 
+#### Versioning
+
+The registry enforces two rules that make version choice irreversible, so get it
+right before publishing:
+
+1. **Once published, a version string and its metadata cannot be changed.**
+2. **Versions are sorted by semver to decide which is `latest`.** Publishing a
+   version that sorts *below* the current one does not make it latest — it lands
+   as an orphaned entry while the higher version stays canonical. There is no
+   way to correct a version number after the fact except deleting the entry and
+   republishing.
+
+Rules for picking the next one:
+
+- **Track the remote API version.** AgentDrive's API is `v0`, so the server
+  version stays in `0.x`. When the API moves to `v1`, this moves to `1.x`.
+- **Metadata-only republishes** (description, icons, `websiteUrl`) still need a
+  new version. Increment the patch — `0.1.1`, `0.1.2`. The registry documents
+  prerelease strings (`0.2.0-1`) for this, but they sort *before* their release
+  version, so they only work if you publish the prereleases first and the plain
+  version last.
+- The currently published version is **`0.1.0`**, serving
+  `https://drive.mcp.tokencanopy.com/mcp`. Version `0.0.1` is `deprecated`: it
+  pointed at `api.agentdrive.run/mcp`, which no longer resolves.
+
+Note that `0.1.0` was a minor bump for what was really a patch-level URL
+correction. That was a mistake, kept because it cannot be edited and republishing
+lower would not take. Do not read it as signalling a feature.
+
 ### 3. Agent Plugins 1.0 Schema Conformance
 `plugin/plugin.json` conforms strictly to the [Agent Plugins 1.0](https://agent-plugins.org) specification. The specification explicitly forbids unrecognized top-level keys. Only these keys are permitted:
 `$schema`, `name`, `version`, `description`, `author`, `homepage`, `repository`, `license`, `keywords`, `extensions`.
