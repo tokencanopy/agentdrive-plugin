@@ -146,9 +146,15 @@ which is why none of the configs above carry a token.
 
 ## MCP Registry
 
-The published entry is `run.agentdrive/agentdrive`. Its namespace is still rooted
-in `agentdrive.run`, a domain that has been retired and now redirects, so the
-listing needs either a republish in place (DNS-verified against that domain) or a
-move to a `tokencanopy.com`-verified namespace. Until that is done, treat
-`connector/server.json` in this repo — not the registry listing — as the source
-of truth for the endpoint.
+Published as **`com.tokencanopy/agentdrive`**:
+
+```
+https://registry.modelcontextprotocol.io/v0.1/servers?search=com.tokencanopy/agentdrive
+```
+
+It was previously published as `run.agentdrive/agentdrive`, a namespace rooted
+in a retired domain. That entry has been deleted and the listing migrated.
+
+Note that an unrelated `sh.agentdrive/agentdrive` exists in the registry,
+operated by someone else at a different endpoint. The `com.tokencanopy`
+namespace is the one tied to the domain that actually serves this endpoint.
