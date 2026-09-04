@@ -1,0 +1,71 @@
+name: Validate
+
+on: [push, pull_request]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: manifests
+        run: |
+          python3 -c '
+          import json, os, sys
+
+          # 1. Validate all JSON files
+          errors = []
+          for root, dirs, files in os.walk("."):
+              dirs[:] = [d for d in dirs if d not in (".git", "node_modules")]
+              for f in files:
+                  if f.endswith(".json"):
+                      path = os.path.join(root, f)
+                      try:
+                          with open(path, "r", encoding="utf-8") as fp:
+                              json.load(fp)
+                      except Exception as e:
+                          errors.append(f"{path}: {e}")
+
+          if errors:
+              print("Invalid JSON files found:", file=sys.stderr)
+              for err in errors:
+                  print(f"  - {err}", file=sys.stderr)
+              sys.exit(1)
+
+          # 2. Assert plugin/plugin.json top-level keys
+          allowed = {
+              "$schema", "name", "version", "description",
+              "author", "homepage", "repository", "license",
+              "keywords", "extensions"
+          }
+          with open("plugin/plugin.json", "r", encoding="utf-8") as fp:
+              data = json.load(fp)
+
+          extra = set(data.keys()) - allowed
+          if extra:
+              print(f"plugin/plugin.json contains forbidden keys: {extra}", file=sys.stderr)
+              sys.exit(1)
+
+          print("Manifests validation succeeded.")
+          '
+
+      - name: endpoint-liveness
+        run: |
+          URL=$(python3 -c 'import json; print(json.load(open("connector/server.json"))["remotes"][0]["url"])')
+          echo "Checking endpoint: $URL"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
+          echo "HTTP response code: $STATUS"
+
+          if [ "$STATUS" = "401" ]; then
+            echo "PASS: Endpoint is live and OAuth-protected (401)"
+          elif [ "$STATUS" = "000" ]; then
+            echo "FAIL: Endpoint DNS failure or connection error (000)"
+            exit 1
+          elif [ "$STATUS" = "404" ]; then
+            echo "FAIL: Endpoint returned 404 Not Found"
+            exit 1
+          else
+            echo "FAIL: Unexpected HTTP status $STATUS"
+            exit 1
+          fi
